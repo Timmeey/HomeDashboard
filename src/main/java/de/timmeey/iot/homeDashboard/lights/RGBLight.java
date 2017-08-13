@@ -26,7 +26,7 @@ public abstract class RGBLight implements Light {
         this.colorSource = colorSource;
     }
 
-    private void setColor(@NonNull Color color){
+    private void setColor(@NonNull Color color) {
         this.color = color;
         this.showColor(color);
     }
@@ -83,7 +83,12 @@ public abstract class RGBLight implements Light {
     public Printed print(final Printed printed) {
         printed.with("turnedOn", this.turnedOn);
         if (this.turnedOn) {
-            printed.with("color", this.color.getRGB());
+            printed.with("color", printed1 -> {
+                printed1.with("red", color.getRed());
+                printed1.with("green", color.getGreen());
+                printed1.with("blue", color.getBlue());
+                return printed1;
+            });
         } else {
             printed.with("color", "");
         }
