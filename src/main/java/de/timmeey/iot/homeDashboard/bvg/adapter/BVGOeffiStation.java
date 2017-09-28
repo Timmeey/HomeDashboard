@@ -1,6 +1,7 @@
 package de.timmeey.iot.homeDashboard.bvg.adapter;
 
 import de.timmeey.iot.homeDashboard.bvg.Station;
+import de.timmeey.libTimmeey.printable.Printable;
 import de.timmeey.libTimmeey.printable.Printed;
 import java.time.format.DateTimeFormatter;
 
@@ -31,7 +32,7 @@ public class BVGOeffiStation implements Station {
     public Printed print(final Printed printed) {
         printed.with("name", this.source.name());
         printed.with("updated", this.source.lastUpdated().format(DateTimeFormatter.ISO_DATE_TIME));
-        printed.withList("departures", this.departures());
+        printed.with("departures", (Printable)this.departures());
         return printed;
     }
 

@@ -1,5 +1,9 @@
 package de.timmeey.iot.homeDashboard.bvg;
 
+import de.timmeey.oeffiwatch.exception.AmbigiuousStationNameException;
+import de.timmeey.oeffiwatch.exception.ParseException;
+import java.io.IOException;
+
 /**
  * Stations.
  * @author Tim Hinkes (timmeey@timmeey.de)
@@ -7,5 +11,5 @@ package de.timmeey.iot.homeDashboard.bvg;
  * @since 0.1
  */
 public interface Stations {
-    Station get(String name);
+    Station get(String name) throws ParseException, IOException, AmbigiuousStationNameException;
 }

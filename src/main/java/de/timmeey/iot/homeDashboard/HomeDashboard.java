@@ -28,15 +28,18 @@ import ro.pippo.core.route.PublicResourceHandler;
 @MetaInfServices
 public class HomeDashboard extends ControllerApplication {
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
 
         System.setProperty("pippo.mode", "dev");
-        Pippo pippo = new Pippo(new HomeDashboard());
+        final Pippo pippo = new Pippo(new HomeDashboard());
         pippo.start(8081);
     }
 
     @Override
-    protected void onInit() {
+    protected final void onInit() {
+        super.onInit();
+        this.setErrorHandler(new NewDefaultErrorHandler(this));
+
         this.ALL("/.*", routeContext -> {
             routeContext.getResponse().header
                 ("Access-Control-Allow-Origin", "*")
@@ -46,7 +49,7 @@ public class HomeDashboard extends ControllerApplication {
         });
 
         this.ALL("/.*", routeContext -> {
-            if (routeContext.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+            if ("OPTIONS".equalsIgnoreCase(routeContext.getRequestMethod())) {
                 routeContext.getResponse().status(200);
                 return;
             }
@@ -56,9 +59,9 @@ public class HomeDashboard extends ControllerApplication {
         this.addResourceRoute(new PublicResourceHandler());
         this.addControllers(new DateController());
         this.addControllers(new OeffiController(new BVGOeffiStations(Grabber
-            .getVBBInstance())));
-        Map<Long, Light> lights = new HashMap<>();
+            .getVBBInstance()),getErrorHandler()));
         try {
+            final Map<Long, Light> lights = new HashMap<>(1);
             lights.put(0L,
                 new UDPLight(new ColorSource() {
                     @Override
@@ -68,17 +71,15 @@ public class HomeDashboard extends ControllerApplication {
 
                     @Override
                     public void register(final Observer<Color> observer) {
-                        return;
                     }
 
                     @Override
                     public void unregister(final Observer observer) {
-                        return;
                     }
                 }, new DatagramSocket())
             );
             this.addControllers(new LightsController(lights));
-        } catch (SocketException e) {
+        } catch (final SocketException e) {
             throw new IllegalStateException(e);
         }
 

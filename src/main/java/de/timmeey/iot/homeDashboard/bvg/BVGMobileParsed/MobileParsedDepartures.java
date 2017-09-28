@@ -33,6 +33,6 @@ public final class MobileParsedDepartures implements Iterable<Departure>,Printab
 
     @Override
     public Printed print(final Printed printed) {
-        return printed.onlyList(iterator());
+        return printed.only(iterator());
     }
 }

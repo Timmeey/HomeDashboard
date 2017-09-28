@@ -49,7 +49,7 @@ public final class BVGOeffiDepartures implements Iterable<Departure>,Printable {
 
     @Override
     public Printed print(final Printed printed) {
-        return printed.onlyList(iterator());
+        return printed.only(iterator());
 
     }
 }

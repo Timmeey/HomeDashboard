@@ -28,9 +28,11 @@ import ro.pippo.controller.extractor.Param;
 public class LightsController extends Controller {
 
     private final Map<Long, Light> lights;
+    
 
     public LightsController(@NonNull final Map<Long, Light> lights) {
         this.lights = lights;
+        Math.random();
     }
 
     @GET("/")

@@ -3,6 +3,9 @@ package de.timmeey.iot.homeDashboard.bvg.adapter;
 import de.timmeey.iot.homeDashboard.bvg.Station;
 import de.timmeey.iot.homeDashboard.bvg.Stations;
 import de.timmeey.oeffiwatch.Grabber;
+import de.timmeey.oeffiwatch.exception.AmbigiuousStationNameException;
+import de.timmeey.oeffiwatch.exception.ParseException;
+import java.io.IOException;
 
 /**
  * BVGStations.
@@ -18,11 +21,8 @@ public class BVGOeffiStations implements Stations {
     }
 
     @Override
-    public Station get(final String name) {
-        try {
-            return new BVGOeffiStation(this.bvgGrabber.getStation(name));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public Station get(final String name) throws ParseException, IOException, AmbigiuousStationNameException {
+        return new BVGOeffiStation(this.bvgGrabber.getStation(name));
+
     }
 }
