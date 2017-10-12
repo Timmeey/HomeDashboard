@@ -13,6 +13,8 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.val;
 
 /**
@@ -22,16 +24,21 @@ import lombok.val;
  * @since 0.1
  */
 @SuppressWarnings("AbstractClassWithOnlyOneDirectInheritor")
-public class SqlSensor implements Sensor {
+public class SqliSensor implements Sensor {
     public static final String TABLE_NAME = "sensors";
     private final Connection conn;
-    private final UniqueIdentifier<String> sensorId;
 
-    SqlSensor(final Connection conn, final
+    @Getter
+    @Accessors(fluent = true)
+    private final UniqueIdentifier<String> id;
+
+    public SqliSensor(final Connection conn, final
     UniqueIdentifier<String> sensorId) {
         this.conn = conn;
-        this.sensorId = sensorId;
+        this.id = sensorId;
     }
+
+
 
     @SuppressWarnings("StringConcatenation")
     @Override
@@ -40,10 +47,10 @@ public class SqlSensor implements Sensor {
         final Statement stmnt = this.conn.createStatement();
         final ResultSet rs = stmnt.executeQuery(
             String.format("Select id FROM %s WHERE sensor_id=\"%s\"",
-                SqlReading.READING_TABLE_NAME, sensorId.id())
+                SqliReading.READING_TABLE_NAME, id.id())
         );
         while (rs.next()) {
-            result.add(new SqlReading(new UUIDUniqueIdentifier(rs.getString
+            result.add(new SqliReading(new UUIDUniqueIdentifier(rs.getString
                 (1)), conn));
         }
         return result;
@@ -54,14 +61,14 @@ public class SqlSensor implements Sensor {
         throws Exception {
         final PreparedStatement prepStmnt = this.conn
             .prepareStatement(String.format("INSERT INTO %s (id, value, " +
-                "datetime, sensor_id) VALUES(?,?,?,?)",SqlReading.READING_TABLE_NAME));
+                "datetime, sensor_id) VALUES(?,?,?,?)", SqliReading.READING_TABLE_NAME));
         val id = new UUIDUniqueIdentifier();
         prepStmnt.setString(1, id.id());
         prepStmnt.setDouble(2, value);
         prepStmnt.setTimestamp(3, Timestamp.from(datetime.toInstant()));
-        prepStmnt.setString(4,this.sensorId.id());
+        prepStmnt.setString(4,this.id.id());
         prepStmnt.execute();
-        return new SqlReading(id,conn);
+        return new SqliReading(id,conn);
     }
 
     @Override

@@ -1,11 +1,13 @@
 package de.timmeey.iot.homeDashboard;
 
-import de.timmeey.iot.homeDashboard.sensors.SqlReading;
-import de.timmeey.iot.homeDashboard.sensors.SqlSensor;
+import de.timmeey.iot.homeDashboard.health.weigth.SqliWeightsAggregator;
+import de.timmeey.iot.homeDashboard.sensors.SqliReading;
+import de.timmeey.iot.homeDashboard.sensors.SqliSensor;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import lombok.val;
 import org.cactoos.Text;
 import org.cactoos.text.JoinedText;
 import org.cactoos.text.TextOf;
@@ -32,6 +34,7 @@ class SetupDatabase {
             StringBuilder sb = new StringBuilder(2);
             sb.append(sensorTable().asString()).append(readingTable()
                 .asString());
+            sb.append(weightTable().asString());
             System.out.println(sb.toString());
             conn.createStatement().executeUpdate(sb.toString());
         } finally {
@@ -43,7 +46,7 @@ class SetupDatabase {
 
     private Table readingTable() {
         String appendix = "FOREIGN KEY(sensor_id) REFERENCES sensors(id)";
-        return new Table(SqlReading.READING_TABLE_NAME, appendix,
+        return new Table(SqliReading.READING_TABLE_NAME, appendix,
             new Column("id", "TEXT", "NOT NULL", "PRIMARY KEY"),
             new Column("value", "DECIMAL", "NOT NULL"),
             new Column("datetime", "DATE", "NOT NULL"),
@@ -52,10 +55,28 @@ class SetupDatabase {
     }
 
     private Table sensorTable() {
-        return new Table(SqlSensor.TABLE_NAME, "",
+        return new Table(SqliSensor.TABLE_NAME, "",
             new Column("id", "TEXT", "PRIMARY KEY"),
             new Column("unit", "TEXT", "NOT NULL")
         );
+    }
+
+    private Table weightTable(){
+        val appendix = new StringBuilder("FOREIGN KEY(weightSensor_id) REFERENCES sensors(id),\n");
+        appendix.append("FOREIGN KEY(fatSensor_id) REFERENCES sensors(id),\n");
+        appendix.append("FOREIGN KEY(waterSensor_id) REFERENCES sensors(id),\n");
+        appendix.append("FOREIGN KEY(boneSensor_id) REFERENCES sensors(id),\n");
+        appendix.append("FOREIGN KEY(muscleSensor_id) REFERENCES sensors(id)\n");
+
+
+        return new Table(SqliWeightsAggregator.WEIGTHS_TABLE_NAME, appendix.toString(),
+            new Column("id","TEXT","NOT NULL","PRIMARY KEY"),
+            new Column("weightSensor_id","TEXT"),
+            new Column("fatSensor_id","TEXT"),
+            new Column("waterSensor_id","TEXT"),
+            new Column("boneSensor_id","TEXT"),
+            new Column("muscleSensor_id","TEXT")
+            );
     }
 
     private static class Column implements Text {
@@ -130,7 +151,7 @@ class SetupDatabase {
             }
             Arrays.stream(columns).filter(c -> c.isIndex()).forEach(c -> sb
                 .append(String.format(
-                "CREATE INDEX %sindex ON %s(%s)\n",
+                "CREATE INDEX %sindex ON %s(%s);\n",
                 c.name,
                 this.name,
                 c.name

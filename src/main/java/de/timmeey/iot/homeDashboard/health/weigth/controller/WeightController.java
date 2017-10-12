@@ -2,7 +2,7 @@ package de.timmeey.iot.homeDashboard.health.weigth.controller;
 
 import de.timmeey.iot.homeDashboard.EnhancedRequest;
 import de.timmeey.iot.homeDashboard.health.weigth.MetricWeight;
-import de.timmeey.iot.homeDashboard.health.weigth.Weights;
+import de.timmeey.iot.homeDashboard.health.weigth.WeightsAggregator;
 import de.timmeey.iot.homeDashboard.health.weigth.controller.dto.MetricWeightRequest;
 import de.timmeey.libTimmeey.printable.Printable;
 import de.timmeey.libTimmeey.printable.Printed;
@@ -29,9 +29,9 @@ import ro.pippo.controller.extractor.Body;
 @Slf4j
 @Path("/health/weight")
 public final class WeightController extends Controller {
-    private final Weights weights;
+    private final WeightsAggregator weights;
 
-    public WeightController(final Weights weights) {
+    public WeightController(final WeightsAggregator weights) {
         this.weights = weights;
     }
 
@@ -40,7 +40,7 @@ public final class WeightController extends Controller {
     public Iterable<MetricWeight> weight() throws Exception {
         val height = new EnhancedRequest(this.getRequest())
             .getQueryParamAsInt("height");
-        val result = this.weights.allWeights();
+        val result = this.weights.getAll().iterator().next().allWeights();
         return height.<Iterable<MetricWeight>>map(integer -> new Mapped<>
             (result, metric -> new BMIEnabledWeight(metric, integer)))
             .orElse(result);
@@ -52,7 +52,7 @@ public final class WeightController extends Controller {
     @Produces(Produces.JSON)
     public MetricWeight addWeights(@Body final MetricWeightRequest weightRequest) throws
         Exception {
-        return this.weights.addWeight(ZonedDateTime.now(),weightRequest);
+        return this.weights.getAll().iterator().next().addWeight(ZonedDateTime.now(),weightRequest);
     }
 
     private static final class BMIEnabledWeight implements MetricWeight {

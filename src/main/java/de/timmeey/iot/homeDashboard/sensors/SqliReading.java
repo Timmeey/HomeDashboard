@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  * @since 0.1
  */
 @RequiredArgsConstructor
-public class SqlReading implements Reading {
+public class SqliReading implements Reading {
     public static final String READING_TABLE_NAME = "sensor_readings";
     private final UniqueIdentifier<String> id;
     private final Connection conn;

@@ -3,23 +3,26 @@ package de.timmeey.iot.homeDashboard;
 import de.timmeey.iot.homeDashboard.bvg.OeffiController;
 import de.timmeey.iot.homeDashboard.bvg.adapter.BVGOeffiStations;
 import de.timmeey.iot.homeDashboard.date.DateController;
-import de.timmeey.iot.homeDashboard.health.weigth.WeightsImpl;
+import de.timmeey.iot.homeDashboard.health.weigth.SqliWeightsAggregator;
 import de.timmeey.iot.homeDashboard.health.weigth.controller.WeightController;
 import de.timmeey.iot.homeDashboard.lights.ColorSource;
 import de.timmeey.iot.homeDashboard.lights.Light;
 import de.timmeey.iot.homeDashboard.lights.LightsController;
 import de.timmeey.iot.homeDashboard.lights.UDPLight;
+import de.timmeey.iot.homeDashboard.sensors.SqliSensors;
 import de.timmeey.libTimmeey.observ.Observer;
-import de.timmeey.libTimmeey.sensor.FkSensor;
 import de.timmeey.oeffiwatch.Grabber;
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.val;
 import org.kohsuke.MetaInfServices;
 import org.sqlite.SQLiteConfig;
 import ro.pippo.controller.Controller;
@@ -75,8 +78,7 @@ public class HomeDashboard extends ControllerApplication {
             File tmpFile = File.createTempFile("dashboardDevDb", ".db");
             System.out.println("Using DEV environment. DB: " + tmpFile
                 .getAbsolutePath());
-            return DriverManager.getConnection("jdbc:sqlite:" + tmpFile
-                .getAbsolutePath(), config.toProperties());
+            return DriverManager.getConnection("jdbc:sqlite:memory", config.toProperties());
         }
     }
 
@@ -138,8 +140,9 @@ public class HomeDashboard extends ControllerApplication {
 
     }
 
-    private Controller initWeightsController() {
-        return new WeightController(new WeightsImpl(new FkSensor(), new
-            FkSensor(), new FkSensor(), new FkSensor(), new FkSensor()));
+    private Controller initWeightsController() throws IOException, SQLException {
+        val wa = new SqliWeightsAggregator(new SqliSensors(conn),conn);
+        wa.add();
+        return new WeightController(wa);
     }
 }
