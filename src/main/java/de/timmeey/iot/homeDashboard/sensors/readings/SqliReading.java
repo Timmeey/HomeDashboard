@@ -1,10 +1,10 @@
-package de.timmeey.iot.homeDashboard.sensors;
+package de.timmeey.iot.homeDashboard.sensors.readings;
 
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,16 @@ import lombok.RequiredArgsConstructor;
  */
 @RequiredArgsConstructor
 public class SqliReading implements Reading {
-    public static final String READING_TABLE_NAME = "sensor_readings";
+    private static final String getValue = String.format("SELECT %s FROM %s WHERE %s=?",
+        SqliReadingTable.valueColumn.name(),
+        SqliReadingTable.table.name(),
+        SqliReadingTable.table.primaryKey().get().name()
+        );
+    private static final String getDatetime = String.format("SELECT %s FROM %s WHERE %s=?",
+        SqliReadingTable.datetimeColumn.name(),
+        SqliReadingTable.table.name(),
+        SqliReadingTable.table.primaryKey().get().name()
+    );
     private final UniqueIdentifier<String> id;
     private final Connection conn;
 
@@ -28,12 +37,9 @@ public class SqliReading implements Reading {
 
     @Override
     public double value() {
-        try (Statement stmnt = conn.createStatement()) {
-            return stmnt.executeQuery(String.format(
-                "SELECT value FROM %s WHERE id = \"%s\"",
-                READING_TABLE_NAME,
-                id().id())
-            ).getDouble(1);
+        try (PreparedStatement stmnt = conn.prepareStatement(getValue)) {
+            stmnt.setString(1,this.id.id());
+            return stmnt.executeQuery().getDouble(1);
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
@@ -41,11 +47,9 @@ public class SqliReading implements Reading {
 
     @Override
     public ZonedDateTime datetime() {
-        try (Statement stmnt = conn.createStatement()) {
-            return ZonedDateTime.ofInstant(stmnt.executeQuery(String.format(
-                "SELECT datetime FROM %s WHERE id = \"%s\"",
-                READING_TABLE_NAME,
-                id().id()))
+        try (PreparedStatement stmnt = conn.prepareStatement(getDatetime)) {
+            stmnt.setString(1,this.id.id());
+            return ZonedDateTime.ofInstant(stmnt.executeQuery()
                 .getTimestamp(1)
                 .toInstant(), ZoneId.of("UTC")
             );

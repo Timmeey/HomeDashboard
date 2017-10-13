@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -24,26 +23,25 @@ import lombok.val;
  */
 @RequiredArgsConstructor
 public class SqliWeightsAggregator implements WeightsAggregator {
-    public static final String WEIGTHS_TABLE_NAME = "weights";
+    private static final String getAllStmnt = String.format("SELECT id FROM %s",SqliWeightsTable.table.name());
+
     private final SqliSensors sensors;
     private final Connection conn;
 
     @Override
     public Iterable<SqliWeights> getAll() throws SQLException {
         final Collection<SqliWeights> result = new LinkedList<>();
-        final Statement stmnt = this.conn.createStatement();
-        final ResultSet rs = stmnt.executeQuery(
-            String.format("Select id FROM %s",
-                WEIGTHS_TABLE_NAME)
-        );
-        while (rs.next()) {
-            result.add(new SqliWeights(conn, sensors, new
-                UUIDUniqueIdentifier(rs
-                .getString
-                    (1)))
-            );
+        try (PreparedStatement stmnt = conn.prepareStatement(getAllStmnt)) {
+            final ResultSet rs = stmnt.executeQuery();
+            while (rs.next()) {
+                result.add(new SqliWeights(conn, sensors, new
+                    UUIDUniqueIdentifier(rs
+                    .getString
+                        (1)))
+                );
+            }
+            return result;
         }
-        return result;
     }
 
     @Override
@@ -55,17 +53,8 @@ public class SqliWeightsAggregator implements WeightsAggregator {
 
     @Override
     public Weights add() throws IOException, SQLException {
-        try (final PreparedStatement stmnt = this.conn.prepareStatement
-            (String.format("INSERT INTO %s (id," +
-                    "weightSensor_id," +
-                    "fatSensor_id," +
-                    "waterSensor_id," +
-                    "boneSensor_id," +
-                    "muscleSensor_id" +
-                    ") VALUES(?,?,?,?,?,?)",
-                SqliWeightsAggregator.WEIGTHS_TABLE_NAME))) {
+        try (PreparedStatement stmnt = conn.prepareStatement(SqliWeightsTable.table.insertQuery())) {
             val id = new UUIDUniqueIdentifier();
-
             stmnt.setString(1, id.id());
             stmnt.setString(2, this.sensors.add("kg").id().id());
             stmnt.setString(3, this.sensors.add("%").id().id());

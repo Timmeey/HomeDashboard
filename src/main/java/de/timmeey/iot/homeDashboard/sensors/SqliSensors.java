@@ -26,9 +26,8 @@ public class SqliSensors implements Sensors {
 
     @Override
     public SqliSensor add(final String unit) throws SQLException {
-        try (final PreparedStatement stmnt = this.conn.prepareStatement
-            (String.format("INSERT INTO %s (id, unit) VALUES(?,?)", SqliSensor
-                .TABLE_NAME))) {
+        try (PreparedStatement stmnt = conn.prepareStatement(SqliSensorTable.table.insertQuery())) {
+
             val id = new UUIDUniqueIdentifier();
             stmnt.setString(1,id.id());
             stmnt.setString(2,unit);

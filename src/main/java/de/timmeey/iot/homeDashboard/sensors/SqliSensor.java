@@ -1,5 +1,7 @@
 package de.timmeey.iot.homeDashboard.sensors;
 
+import de.timmeey.iot.homeDashboard.sensors.readings.SqliReading;
+import de.timmeey.iot.homeDashboard.sensors.readings.SqliReadingTable;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import de.timmeey.libTimmeey.sensor.Sensor;
@@ -7,7 +9,6 @@ import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -25,7 +26,11 @@ import lombok.val;
  */
 @SuppressWarnings("AbstractClassWithOnlyOneDirectInheritor")
 public class SqliSensor implements Sensor {
-    public static final String TABLE_NAME = "sensors";
+    private static final String getAllIdsForSensor = String.format("SELECT %s FROM %s WHERE %s=?",
+        SqliReadingTable.table.primaryKey().get().name(),
+        SqliReadingTable.table.name(),
+        SqliReadingTable.sensor_idColumn.name()
+        );
     private final Connection conn;
 
     @Getter
@@ -44,11 +49,9 @@ public class SqliSensor implements Sensor {
     @Override
     public final Iterable<Reading> readings() throws Exception {
         final Collection<Reading> result = new LinkedList<>();
-        final Statement stmnt = this.conn.createStatement();
-        final ResultSet rs = stmnt.executeQuery(
-            String.format("Select id FROM %s WHERE sensor_id=\"%s\"",
-                SqliReading.READING_TABLE_NAME, id.id())
-        );
+        final PreparedStatement stmnt = this.conn.prepareStatement(getAllIdsForSensor);
+        stmnt.setString(1,this.id.id());
+        final ResultSet rs = stmnt.executeQuery();
         while (rs.next()) {
             result.add(new SqliReading(new UUIDUniqueIdentifier(rs.getString
                 (1)), conn));
@@ -60,8 +63,7 @@ public class SqliSensor implements Sensor {
     public final Reading addReading(final double value, final ZonedDateTime datetime)
         throws Exception {
         final PreparedStatement prepStmnt = this.conn
-            .prepareStatement(String.format("INSERT INTO %s (id, value, " +
-                "datetime, sensor_id) VALUES(?,?,?,?)", SqliReading.READING_TABLE_NAME));
+            .prepareStatement(SqliReadingTable.table.insertQuery());
         val id = new UUIDUniqueIdentifier();
         prepStmnt.setString(1, id.id());
         prepStmnt.setDouble(2, value);

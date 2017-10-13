@@ -78,7 +78,7 @@ public class HomeDashboard extends ControllerApplication {
             File tmpFile = File.createTempFile("dashboardDevDb", ".db");
             System.out.println("Using DEV environment. DB: " + tmpFile
                 .getAbsolutePath());
-            return DriverManager.getConnection("jdbc:sqlite:memory", config.toProperties());
+            return DriverManager.getConnection("jdbc:sqlite::memory:", config.toProperties());
         }
     }
 

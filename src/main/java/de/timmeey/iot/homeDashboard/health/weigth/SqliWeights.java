@@ -1,14 +1,15 @@
 package de.timmeey.iot.homeDashboard.health.weigth;
 
-import de.timmeey.iot.homeDashboard.health.weigth.controller.dto.MetricWeightRequest;
+import de.timmeey.iot.homeDashboard.health.weigth.controller.dto
+    .MetricWeightRequest;
 import de.timmeey.iot.homeDashboard.sensors.Sensors;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import de.timmeey.libTimmeey.sensor.Sensor;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.ZonedDateTime;
 import java.util.Deque;
 import java.util.Iterator;
@@ -26,6 +27,7 @@ import lombok.val;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public final class SqliWeights implements Weights {
+    private static final String getCstomSensorStmnt = "SELECT %s FROM "+ SqliWeightsTable.table.name()+" WHERE id = ?";
     private final Connection conn;
     private final Sensors sensors;
     private final UniqueIdentifier<String> id;
@@ -44,7 +46,7 @@ public final class SqliWeights implements Weights {
         final Deque<MetricWeight> result = new LinkedList<>();
         while (weights.hasNext() && fats.hasNext() && waters.hasNext() &&
             bones.hasNext() && muscles.hasNext()) {
-            result.add(new MetricWeightFromReadings(weights.next(), fats.next
+            result.add(new WeightFromReading(weights.next(), fats.next
                 (), waters.next(), bones.next(), muscles.next()));
         }
         return result;
@@ -54,7 +56,7 @@ public final class SqliWeights implements Weights {
     @Override
     public MetricWeight addWeight(ZonedDateTime dt, MetricWeightRequest mwr)
         throws Exception {
-        return new MetricWeightFromReadings(
+        return new WeightFromReading(
             this.weightSensor().addReading(mwr.weight(), dt),
             this.fatSensor().addReading(mwr.bodyFat(), dt),
             this.waterSensor().addReading(mwr.bodyWater(), dt),
@@ -64,35 +66,30 @@ public final class SqliWeights implements Weights {
     }
 
     private Sensor weightSensor() {
-        return this.sensor("weightSensor_id");
+        return this.sensor(SqliWeightsTable.weightSensor.name());
     }
 
     private Sensor fatSensor() {
-        return this.sensor("fatSensor_id");
+        return this.sensor(SqliWeightsTable.fatSensor.name());
     }
 
     private Sensor waterSensor() {
-        return this.sensor("waterSensor_id");
+        return this.sensor(SqliWeightsTable.waterSensor.name());
     }
 
     private Sensor boneSensor() {
-        return this.sensor("boneSensor_id");
+        return this.sensor(SqliWeightsTable.boneSensor.name());
     }
 
     private Sensor muscleSensor() {
-        return this.sensor("muscleSensor_id");
+        return this.sensor(SqliWeightsTable.muscleSensor.name());
     }
 
     private Sensor sensor(String sensorIdColumnName) {
-        try (Statement stmnt = conn.createStatement()) {
+        try (PreparedStatement stmnt = conn.prepareStatement(String.format(getCstomSensorStmnt,sensorIdColumnName))) {
+            stmnt.setString(1, this.id.id());
             val sensorId = new UUIDUniqueIdentifier(stmnt
-                .executeQuery
-                    (String.format(
-                        "SELECT %s FROM %s WHERE id = \"%s\"",
-                        sensorIdColumnName,
-                        SqliWeightsAggregator.WEIGTHS_TABLE_NAME,
-                        this.id.id())
-                    ).getString(1));
+                .executeQuery().getString(1));
             return this.sensors.sensor(sensorId).orElseThrow(() -> new
                 NullPointerException(String.format("Sensor with id: %s, does " +
                 "not exist", sensorId.id())));

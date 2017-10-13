@@ -1,16 +1,11 @@
 package de.timmeey.iot.homeDashboard;
 
-import de.timmeey.iot.homeDashboard.health.weigth.SqliWeightsAggregator;
-import de.timmeey.iot.homeDashboard.sensors.SqliReading;
-import de.timmeey.iot.homeDashboard.sensors.SqliSensor;
+import de.timmeey.iot.homeDashboard.health.weigth.SqliWeightsTable;
+import de.timmeey.iot.homeDashboard.sensors.readings.SqliReadingTable;
+import de.timmeey.iot.homeDashboard.sensors.SqliSensorTable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import lombok.val;
-import org.cactoos.Text;
-import org.cactoos.text.JoinedText;
-import org.cactoos.text.TextOf;
 
 /**
  * SetupDatabase.
@@ -32,9 +27,8 @@ class SetupDatabase {
         try {
             conn.setAutoCommit(false);
             StringBuilder sb = new StringBuilder(2);
-            sb.append(sensorTable().asString()).append(readingTable()
-                .asString());
-            sb.append(weightTable().asString());
+            sb.append(SqliSensorTable.table.createTableQuery()).append(SqliReadingTable.table.createTableQuery());
+            sb.append(SqliWeightsTable.table.createTableQuery());
             System.out.println(sb.toString());
             conn.createStatement().executeUpdate(sb.toString());
         } finally {
@@ -44,124 +38,4 @@ class SetupDatabase {
 
     }
 
-    private Table readingTable() {
-        String appendix = "FOREIGN KEY(sensor_id) REFERENCES sensors(id)";
-        return new Table(SqliReading.READING_TABLE_NAME, appendix,
-            new Column("id", "TEXT", "NOT NULL", "PRIMARY KEY"),
-            new Column("value", "DECIMAL", "NOT NULL"),
-            new Column("datetime", "DATE", "NOT NULL"),
-            new Column("sensor_id", "TEXT", true, "NOT NULL")
-        );
-    }
-
-    private Table sensorTable() {
-        return new Table(SqliSensor.TABLE_NAME, "",
-            new Column("id", "TEXT", "PRIMARY KEY"),
-            new Column("unit", "TEXT", "NOT NULL")
-        );
-    }
-
-    private Table weightTable(){
-        val appendix = new StringBuilder("FOREIGN KEY(weightSensor_id) REFERENCES sensors(id),\n");
-        appendix.append("FOREIGN KEY(fatSensor_id) REFERENCES sensors(id),\n");
-        appendix.append("FOREIGN KEY(waterSensor_id) REFERENCES sensors(id),\n");
-        appendix.append("FOREIGN KEY(boneSensor_id) REFERENCES sensors(id),\n");
-        appendix.append("FOREIGN KEY(muscleSensor_id) REFERENCES sensors(id)\n");
-
-
-        return new Table(SqliWeightsAggregator.WEIGTHS_TABLE_NAME, appendix.toString(),
-            new Column("id","TEXT","NOT NULL","PRIMARY KEY"),
-            new Column("weightSensor_id","TEXT"),
-            new Column("fatSensor_id","TEXT"),
-            new Column("waterSensor_id","TEXT"),
-            new Column("boneSensor_id","TEXT"),
-            new Column("muscleSensor_id","TEXT")
-            );
-    }
-
-    private static class Column implements Text {
-
-        private final String name;
-        private final String type;
-        private final String[] attributes;
-        private final boolean isIndex;
-
-        public Column(final String name,
-            final String type,
-            final boolean isIndex,
-            final String... attributes) {
-
-            this.name = name;
-            this.type = type;
-            this.attributes = attributes;
-            this.isIndex = isIndex;
-        }
-
-        public Column(final String name,
-            final String type,
-            final String... attributes) {
-
-            this.name = name;
-            this.type = type;
-            this.attributes = attributes;
-            this.isIndex = false;
-        }
-
-        @Override
-        public String asString() throws IOException {
-            return String.format("%s %s %s", name, type, new JoinedText("" +
-                " ", attributes).asString());
-        }
-
-        @Override
-        public int compareTo(final Text o) {
-            throw new UnsupportedOperationException("#compareTo()");
-        }
-
-        public boolean isIndex() {
-            return isIndex;
-        }
-    }
-
-    private static class Table implements Text {
-        private final String name;
-        private final String appendix;
-        private final SetupDatabase.Column[] columns;
-
-        public Table(final String name, final String appendix,
-            final Column... columns) {
-            this.name = name;
-            this.appendix = appendix;
-            this.columns = columns;
-        }
-
-        public String asString() throws IOException {
-            final StringBuilder sb = new StringBuilder();
-            if (this.appendix.isEmpty()) {
-                sb.append(String.format("CREATE TABLE %s(\n%s\n);\n", name, new
-                    JoinedText(new TextOf(",\n"), columns).asString())
-                );
-            } else {
-                sb.append(String.format("CREATE TABLE %s(\n%s,\n%s\n);\n",
-                    name,
-                    new JoinedText(new TextOf(",\n"), columns).asString(),
-                    appendix
-                    )
-                );
-            }
-            Arrays.stream(columns).filter(c -> c.isIndex()).forEach(c -> sb
-                .append(String.format(
-                "CREATE INDEX %sindex ON %s(%s);\n",
-                c.name,
-                this.name,
-                c.name
-            )));
-            return sb.toString();
-        }
-
-        @Override
-        public int compareTo(final Text o) {
-            throw new UnsupportedOperationException("#compareTo()");
-        }
-    }
 }
