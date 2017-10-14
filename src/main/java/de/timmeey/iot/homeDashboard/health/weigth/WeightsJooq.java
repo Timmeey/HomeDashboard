@@ -3,20 +3,20 @@ package de.timmeey.iot.homeDashboard.health.weigth;
 import de.timmeey.iot.homeDashboard.health.weigth.controller.dto
     .MetricWeightRequest;
 import de.timmeey.iot.homeDashboard.sensors.Sensors;
+import de.timmeey.iot.jooq.sqlite.Tables;
+import de.timmeey.iot.jooq.sqlite.tables.records.WeightsRecord;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import de.timmeey.libTimmeey.sensor.Sensor;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import lombok.val;
+import org.jooq.DSLContext;
+import org.jooq.TableField;
 
 /**
  * FkWeights.
@@ -26,11 +26,12 @@ import lombok.val;
  */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public final class SqliWeights implements Weights {
-    private static final String getCstomSensorStmnt = "SELECT %s FROM "+ SqliWeightsTable.table.name()+" WHERE id = ?";
-    private final Connection conn;
-    private final Sensors sensors;
+public final class WeightsJooq implements Weights {
     private final UniqueIdentifier<String> id;
+    private final DSLContext jooq;
+    private final de.timmeey.iot.jooq.sqlite.tables.Weights table = Tables
+        .WEIGHTS;
+    private final Sensors sensors;
 
     @Override
     public Iterable<MetricWeight> allWeights() throws Exception {
@@ -63,39 +64,33 @@ public final class SqliWeights implements Weights {
             this.boneSensor().addReading(mwr.boneMass(), dt),
             this.muscleSensor().addReading(mwr.muscle(), dt)
         );
+
     }
 
     private Sensor weightSensor() {
-        return this.sensor(SqliWeightsTable.weightSensor.name());
+        return this.sensor(table.WEIGHTSENSOR_ID);
     }
 
     private Sensor fatSensor() {
-        return this.sensor(SqliWeightsTable.fatSensor.name());
+        return this.sensor(table.FATSENSOR_ID);
     }
 
     private Sensor waterSensor() {
-        return this.sensor(SqliWeightsTable.waterSensor.name());
+        return this.sensor(table.WATERSENSOR_ID);
     }
 
     private Sensor boneSensor() {
-        return this.sensor(SqliWeightsTable.boneSensor.name());
+        return this.sensor(table.BONESENSOR_ID);
     }
 
     private Sensor muscleSensor() {
-        return this.sensor(SqliWeightsTable.muscleSensor.name());
+        return this.sensor(table.MUSCLESENSOR_ID);
     }
 
-    private Sensor sensor(String sensorIdColumnName) {
-        try (PreparedStatement stmnt = conn.prepareStatement(String.format(getCstomSensorStmnt,sensorIdColumnName))) {
-            stmnt.setString(1, this.id.id());
-            val sensorId = new UUIDUniqueIdentifier(stmnt
-                .executeQuery().getString(1));
-            return this.sensors.sensor(sensorId).orElseThrow(() -> new
-                NullPointerException(String.format("Sensor with id: %s, does " +
-                "not exist", sensorId.id())));
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
+    private Sensor sensor(TableField<WeightsRecord, String>
+        sensorIdColumnName) {
+        return sensors.sensor(new UUIDUniqueIdentifier(jooq.select
+            (sensorIdColumnName).from(table).where(table.ID.eq(this.id.id())).fetchOne().component1())).get();
     }
 
     public UniqueIdentifier<String> getId() {
