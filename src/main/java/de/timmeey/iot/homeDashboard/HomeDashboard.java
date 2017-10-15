@@ -71,12 +71,11 @@ public class HomeDashboard extends ControllerApplication {
         System.setProperty("pippo.mode", "dev");
         Class.forName("org.sqlite.JDBC");
         dataSource = getDataSource();
-        if (!HomeDashboard.dbExists()) {
-            new SetupDatabase(dataSource).ensureDatabase();
-        }
+        new SetupDatabase(dataSource).ensureDatabase();
         DefaultConfiguration jooqConfig = new DefaultConfiguration();
         jooqConfig.setSQLDialect(SQLDialect.SQLITE);
-        jooqConfig.setConnectionProvider(new ThreadLocalRequestProvider(requestConnection,dataSource));
+        jooqConfig.setConnectionProvider(new ThreadLocalRequestProvider
+            (requestConnection, dataSource));
         jooq = new DefaultDSLContext(jooqConfig);
         final Pippo pippo = new Pippo(new HomeDashboard());
         pippo.start(8081);
@@ -156,7 +155,6 @@ public class HomeDashboard extends ControllerApplication {
             this.addControllers(initWeightsController());
             this.addControllers(this.initLightsController());
 
-
             this.ANY("/.*", routeContext -> {
                 Connection tmp = requestConnection.get();
                 requestConnection.set(null);
@@ -167,16 +165,17 @@ public class HomeDashboard extends ControllerApplication {
                         tmp.rollback();
                     }
                     tmp.setAutoCommit(true);
-                    if(connectionPool.size()>3){
-                        log.warn("ConnectionPoolSize is {}",connectionPool.size());
+                    if (connectionPool.size() > 3) {
+                        log.warn("ConnectionPoolSize is {}", connectionPool
+                            .size());
 
                         tmp.close();
-                    }else {
+                    } else {
                         connectionPool.add(tmp);
                     }
                 } catch (SQLException e) {
                     log.error("Something went wrong while committing " +
-                        "transaction",e);
+                        "transaction", e);
                 }
             }).runAsFinally();
 
