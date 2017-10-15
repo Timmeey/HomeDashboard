@@ -1,10 +1,9 @@
 package de.timmeey.iot.homeDashboard.sensors.readings;
 
-import de.timmeey.iot.jooq.sqlite.Tables;
-import de.timmeey.iot.jooq.sqlite.tables.SensorReading;
+import de.timmeey.iot.homeDashboard.util.SqlZonedDateTime;
+import static de.timmeey.iot.jooq.sqlite.tables.SensorReading.SENSOR_READING;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -18,8 +17,7 @@ import org.jooq.DSLContext;
 @RequiredArgsConstructor
 public class ReadingJooq implements Reading {
     private final UniqueIdentifier<String> id;
-    private final DSLContext jooq;
-    private static final SensorReading table = Tables.SENSOR_READING;
+    private final DSLContext jooq;;
 
     @Override
     public UniqueIdentifier id() {
@@ -28,20 +26,21 @@ public class ReadingJooq implements Reading {
 
     @Override
     public double value() {
-        return jooq.select(table.VALUE)
-            .from(table)
-            .where(table.ID.eq(this.id.id()))
+        return jooq.select(SENSOR_READING.VALUE)
+            .from(SENSOR_READING)
+            .where(SENSOR_READING.ID.eq(this.id.id()))
             .fetchAny().component1();
     }
 
     @Override
     public ZonedDateTime datetime() {
-        return ZonedDateTime.ofInstant(
-            jooq.select(table.DATETIME)
-                .from(table)
-                .where(table.ID.eq(this.id.id()))
-                .fetchAny().component1()
-                .toInstant(),
-            ZoneId.of("UTC"));
+        return
+            new SqlZonedDateTime(
+                jooq.select(SENSOR_READING.DATETIME)
+                .from(SENSOR_READING)
+                .where(SENSOR_READING.ID
+                    .eq(this.id.id()))
+                .fetchAny().component1()).from();
+
     }
 }

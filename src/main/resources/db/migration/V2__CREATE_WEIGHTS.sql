@@ -1,4 +1,4 @@
-CREATE TABLE weights(
+CREATE TABLE weight(
   id TEXT PRIMARY KEY,
   weightSensor_id TEXT ,
   fatSensor_id TEXT ,

@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard;
+package de.timmeey.iot.homeDashboard.util;
 
 import ro.pippo.core.Application;
 import ro.pippo.core.DefaultErrorHandler;

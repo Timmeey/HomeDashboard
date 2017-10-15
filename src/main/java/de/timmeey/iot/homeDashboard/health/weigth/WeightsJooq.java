@@ -1,99 +1,60 @@
 package de.timmeey.iot.homeDashboard.health.weigth;
 
-import de.timmeey.iot.homeDashboard.health.weigth.controller.dto
-    .MetricWeightRequest;
-import de.timmeey.iot.homeDashboard.sensors.Sensors;
-import de.timmeey.iot.jooq.sqlite.Tables;
-import de.timmeey.iot.jooq.sqlite.tables.records.WeightsRecord;
+import de.timmeey.iot.homeDashboard.sensors.SensorsJooq;
+import static de.timmeey.iot.jooq.sqlite.Tables.WEIGHT;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
-import de.timmeey.libTimmeey.sensor.Sensor;
-import de.timmeey.libTimmeey.sensor.reading.Reading;
-import java.time.ZonedDateTime;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
+import org.cactoos.iterable.Mapped;
 import org.jooq.DSLContext;
-import org.jooq.TableField;
 
 /**
- * FkWeights.
+ * SqliWeightsAggregator.
  * @author Tim Hinkes (timmeey@timmeey.de)
  * @version $Id:\$
- * @since 0.1
+ * @since 01.
  */
 @RequiredArgsConstructor
-@Accessors(fluent = true)
-public final class WeightsJooq implements Weights {
-    private final UniqueIdentifier<String> id;
+public class WeightsJooq implements WeightsAggregator {
+
+    private final SensorsJooq sensors;
     private final DSLContext jooq;
-    private final de.timmeey.iot.jooq.sqlite.tables.Weights table = Tables
-        .WEIGHTS;
-    private final Sensors sensors;
 
     @Override
-    public Iterable<MetricWeight> allWeights() throws Exception {
-        final Iterator<Reading> weights = this.weightSensor().readings()
-            .iterator();
-        final Iterator<Reading> fats = this.fatSensor().readings().iterator();
-        final Iterator<Reading> waters = this.waterSensor().readings()
-            .iterator();
-        final Iterator<Reading> bones = this.boneSensor().readings().iterator();
-        final Iterator<Reading> muscles = this.muscleSensor().readings()
-            .iterator();
-
-        final Deque<MetricWeight> result = new LinkedList<>();
-        while (weights.hasNext() && fats.hasNext() && waters.hasNext() &&
-            bones.hasNext() && muscles.hasNext()) {
-            result.add(new WeightFromReading(weights.next(), fats.next
-                (), waters.next(), bones.next(), muscles.next()));
-        }
-        return result;
-
+    public Iterable<WeightRecord> getAll() throws SQLException {
+        return new Mapped<>(
+            jooq.selectFrom(WEIGHT)
+                .fetch(), r -> new WeightRecord(r, jooq, sensors)
+        );
     }
 
     @Override
-    public MetricWeight addWeight(ZonedDateTime dt, MetricWeightRequest mwr)
-        throws Exception {
-        return new WeightFromReading(
-            this.weightSensor().addReading(mwr.weight(), dt),
-            this.fatSensor().addReading(mwr.bodyFat(), dt),
-            this.waterSensor().addReading(mwr.bodyWater(), dt),
-            this.boneSensor().addReading(mwr.boneMass(), dt),
-            this.muscleSensor().addReading(mwr.muscle(), dt)
+    public Optional<WeightRecord> get(final UniqueIdentifier<String> id) throws
+        SQLException {
+        return StreamSupport.stream(getAll().spliterator(), false).filter(w
+            -> w.getId().equals(id)).findAny();
+    }
+
+    @Override
+    public Weights add() throws IOException, SQLException {
+        return new WeightRecord(
+            jooq.insertInto(WEIGHT).
+                set(WEIGHT.ID, new UUIDUniqueIdentifier().id()).
+                set(WEIGHT.WEIGHTSENSOR_ID, this.sensors.add("kg").id()
+                    .id()).
+                set(WEIGHT.WATERSENSOR_ID, this.sensors.add("%").id().id()).
+                set(WEIGHT.BONESENSOR_ID, this.sensors.add("%").id().id()).
+                set(WEIGHT.FATSENSOR_ID, this.sensors.add("%").id().id()).
+                set(WEIGHT.MUSCLESENSOR_ID, this.sensors.add("%").id().id())
+                .returning().fetchOne(),
+            this.jooq,
+            this.sensors
         );
 
     }
-
-    private Sensor weightSensor() {
-        return this.sensor(table.WEIGHTSENSOR_ID);
-    }
-
-    private Sensor fatSensor() {
-        return this.sensor(table.FATSENSOR_ID);
-    }
-
-    private Sensor waterSensor() {
-        return this.sensor(table.WATERSENSOR_ID);
-    }
-
-    private Sensor boneSensor() {
-        return this.sensor(table.BONESENSOR_ID);
-    }
-
-    private Sensor muscleSensor() {
-        return this.sensor(table.MUSCLESENSOR_ID);
-    }
-
-    private Sensor sensor(TableField<WeightsRecord, String>
-        sensorIdColumnName) {
-        return sensors.sensor(new UUIDUniqueIdentifier(jooq.select
-            (sensorIdColumnName).from(table).where(table.ID.eq(this.id.id())).fetchOne().component1())).get();
-    }
-
-    public UniqueIdentifier<String> getId() {
-        return this.id;
-    }
 }
+

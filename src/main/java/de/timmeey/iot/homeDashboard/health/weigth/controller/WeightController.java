@@ -1,6 +1,6 @@
 package de.timmeey.iot.homeDashboard.health.weigth.controller;
 
-import de.timmeey.iot.homeDashboard.EnhancedRequest;
+import de.timmeey.iot.homeDashboard.util.EnhancedRequest;
 import de.timmeey.iot.homeDashboard.health.weigth.MetricWeight;
 import de.timmeey.iot.homeDashboard.health.weigth.WeightsAggregator;
 import de.timmeey.iot.homeDashboard.health.weigth.controller.dto.MetricWeightRequest;

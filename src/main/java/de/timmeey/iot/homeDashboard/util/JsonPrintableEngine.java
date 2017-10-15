@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard;
+package de.timmeey.iot.homeDashboard.util;
 
 import com.google.gson.Gson;
 import de.timmeey.libTimmeey.printable.JsonPrettyPrinted;

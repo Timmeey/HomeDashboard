@@ -162,7 +162,7 @@
                             <directory>target/generated-sources/jooq</directory>
                         </target>
                         <generate>
-                            <daos>true</daos>
+                            <daos>false</daos>
                             <pojos>false</pojos>
                             <records>true</records>
                             <relations>true</relations>

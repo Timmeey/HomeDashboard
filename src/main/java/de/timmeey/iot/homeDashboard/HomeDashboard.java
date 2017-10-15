@@ -3,13 +3,16 @@ package de.timmeey.iot.homeDashboard;
 import de.timmeey.iot.homeDashboard.bvg.OeffiController;
 import de.timmeey.iot.homeDashboard.bvg.adapter.BVGOeffiStations;
 import de.timmeey.iot.homeDashboard.date.DateController;
-import de.timmeey.iot.homeDashboard.health.weigth.WeightsAggregatorJooq;
+import de.timmeey.iot.homeDashboard.health.weigth.WeightsJooq;
 import de.timmeey.iot.homeDashboard.health.weigth.controller.WeightController;
 import de.timmeey.iot.homeDashboard.lights.ColorSource;
 import de.timmeey.iot.homeDashboard.lights.Light;
 import de.timmeey.iot.homeDashboard.lights.LightsController;
 import de.timmeey.iot.homeDashboard.lights.UDPLight;
-import de.timmeey.iot.homeDashboard.sensors.SqnsorsJooq;
+import de.timmeey.iot.homeDashboard.sensors.SensorsJooq;
+import de.timmeey.iot.homeDashboard.util.JsonPrintableEngine;
+import de.timmeey.iot.homeDashboard.util.NewDefaultErrorHandler;
+import de.timmeey.iot.homeDashboard.util.ThreadLocalRequestProvider;
 import de.timmeey.libTimmeey.observ.Observer;
 import de.timmeey.oeffiwatch.Grabber;
 import java.awt.Color;
@@ -207,7 +210,7 @@ public class HomeDashboard extends ControllerApplication {
 
     private Controller initWeightsController() throws IOException,
         SQLException {
-        val wa = new WeightsAggregatorJooq(new SqnsorsJooq(jooq), jooq);
+        val wa = new WeightsJooq(new SensorsJooq(jooq), jooq);
         if (!wa.getAll().iterator().hasNext()) {
             wa.add();
         }

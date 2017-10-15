@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard;
+package de.timmeey.iot.homeDashboard.util;
 
 import java.util.List;
 import java.util.Optional;
