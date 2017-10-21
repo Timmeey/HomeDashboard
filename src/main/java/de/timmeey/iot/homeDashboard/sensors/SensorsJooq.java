@@ -1,5 +1,7 @@
 package de.timmeey.iot.homeDashboard.sensors;
 
+import de.timmeey.iot.homeDashboard.sensors.sensor.SensorJooq;
+import de.timmeey.iot.homeDashboard.sensors.sensor.SensorJooqConst;
 import static de.timmeey.iot.jooq.sqlite.Tables.SENSOR;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
@@ -8,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.cactoos.iterable.Mapped;
 import org.jooq.DSLContext;
 
 /**
@@ -21,8 +24,10 @@ public final class SensorsJooq implements Sensors {
     private final DSLContext jooq;
 
     @Override
-    public Iterable<SensorsJooq> sensors() {
-        throw new UnsupportedOperationException("#sensors()");
+    public Iterable<Sensor> sensors() {
+        return new Mapped<>(jooq.fetch(SENSOR), (sr) -> new SensorJooqConst(
+            new SensorJooq(new UUIDUniqueIdentifier(sr.getId()), jooq), sr, jooq
+        ));
     }
 
     @Override
@@ -38,18 +43,18 @@ public final class SensorsJooq implements Sensors {
 
     @Override
     public Optional<Sensor> sensor(final UniqueIdentifier<String> id) {
-            return Optional.ofNullable(jooq.selectFrom(SENSOR)
-                .where(SENSOR.ID.eq(id.id()))
-                .fetchOne())
-                .map(r ->
-                    new SensorRecord(
-                        new SensorJooq(
-                            new UUIDUniqueIdentifier(
-                                r.getId()
-                            ),jooq
-                        ),r,jooq
-                    )
-                );
+        return Optional.ofNullable(jooq.selectFrom(SENSOR)
+            .where(SENSOR.ID.eq(id.id()))
+            .fetchOne())
+            .map(r ->
+                new SensorJooqConst(
+                    new SensorJooq(
+                        new UUIDUniqueIdentifier(
+                            r.getId()
+                        ), jooq
+                    ), r, jooq
+                )
+            );
 
     }
 }

@@ -1,6 +1,7 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths;
 
-import de.timmeey.iot.homeDashboard.sensors.SensorsJooq;
+import de.timmeey.iot.homeDashboard.health.weigths.weight.WeightRecord;
+import de.timmeey.iot.homeDashboard.sensors.Sensors;
 import static de.timmeey.iot.jooq.sqlite.Tables.WEIGHT;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
@@ -21,7 +22,7 @@ import org.jooq.DSLContext;
 @RequiredArgsConstructor
 public class WeightsJooq implements WeightsAggregator {
 
-    private final SensorsJooq sensors;
+    private final Sensors sensors;
     private final DSLContext jooq;
 
     @Override
@@ -44,12 +45,12 @@ public class WeightsJooq implements WeightsAggregator {
         return new WeightRecord(
             jooq.insertInto(WEIGHT).
                 set(WEIGHT.ID, new UUIDUniqueIdentifier().id()).
-                set(WEIGHT.WEIGHTSENSOR_ID, this.sensors.add("kg").id()
+                set(WEIGHT.WEIGHTSENSOR_ID, (String)this.sensors.add("kg").id()
                     .id()).
-                set(WEIGHT.WATERSENSOR_ID, this.sensors.add("%").id().id()).
-                set(WEIGHT.BONESENSOR_ID, this.sensors.add("%").id().id()).
-                set(WEIGHT.FATSENSOR_ID, this.sensors.add("%").id().id()).
-                set(WEIGHT.MUSCLESENSOR_ID, this.sensors.add("%").id().id())
+                set(WEIGHT.WATERSENSOR_ID, (String)this.sensors.add("%").id().id()).
+                set(WEIGHT.BONESENSOR_ID, (String)this.sensors.add("%").id().id()).
+                set(WEIGHT.FATSENSOR_ID, (String)this.sensors.add("%").id().id()).
+                set(WEIGHT.MUSCLESENSOR_ID, (String)this.sensors.add("%").id().id())
                 .returning().fetchOne(),
             this.jooq,
             this.sensors

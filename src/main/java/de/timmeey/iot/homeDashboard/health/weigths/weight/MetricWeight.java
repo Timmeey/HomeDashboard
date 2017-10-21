@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths.weight;
 
 import de.timmeey.libTimmeey.printable.Printable;
 import de.timmeey.libTimmeey.printable.Printed;

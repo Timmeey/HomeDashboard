@@ -1,6 +1,7 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths.weight;
 
-import de.timmeey.iot.homeDashboard.health.weigth.controller.dto.MetricWeightRequest;
+import de.timmeey.iot.homeDashboard.health.weigths.Weights;
+import de.timmeey.iot.homeDashboard.health.weigths.controller.dto.MetricWeightRequest;
 import de.timmeey.iot.homeDashboard.sensors.Sensors;
 import static de.timmeey.iot.jooq.sqlite.Keys.FK_WEIGHT_SENSOR_1;
 import static de.timmeey.iot.jooq.sqlite.Keys.FK_WEIGHT_SENSOR_2;
@@ -36,15 +37,15 @@ public final class WeightRecord implements Weights {
 
     @Override
     public Iterable<MetricWeight> allWeights() throws Exception {
-        final Iterator<Reading> weights = this.weightSensor()
+        final Iterator<? extends Reading> weights = this.weightSensor()
             .readings().iterator();
-        final Iterator<Reading> fats = this.fatSensor()
+        final Iterator<? extends Reading> fats = this.fatSensor()
             .readings().iterator();
-        final Iterator<Reading> waters = this.waterSensor()
+        final Iterator<? extends Reading> waters = this.waterSensor()
             .readings().iterator();
-        final Iterator<Reading> bones = this.boneSensor()
+        final Iterator<? extends Reading> bones = this.boneSensor()
             .readings().iterator();
-        final Iterator<Reading> muscles = this.muscleSensor()
+        final Iterator<? extends Reading> muscles = this.muscleSensor()
             .readings().iterator();
 
         final Deque<MetricWeight> result = new LinkedList<>();
@@ -53,7 +54,7 @@ public final class WeightRecord implements Weights {
             && waters.hasNext()
             && bones.hasNext()
             && muscles.hasNext()) {
-            result.add(new WeightFromReading(
+            result.add(new WeightFromReadings(
                 weights.next(),
                 fats.next(),
                 waters.next(),
@@ -68,7 +69,7 @@ public final class WeightRecord implements Weights {
     @Override
     public MetricWeight addWeight(ZonedDateTime dt, MetricWeightRequest mwr)
         throws Exception {
-        return new WeightFromReading(
+        return new WeightFromReadings(
             this.weightSensor().addReading(mwr.weight(), dt),
             this.fatSensor().addReading(mwr.bodyFat(), dt),
             this.waterSensor().addReading(mwr.bodyWater(), dt),

@@ -1,9 +1,10 @@
-package de.timmeey.iot.homeDashboard.health.weigth.controller;
+package de.timmeey.iot.homeDashboard.health.weigths.controller;
 
-import de.timmeey.iot.homeDashboard.util.EnhancedRequest;
-import de.timmeey.iot.homeDashboard.health.weigth.MetricWeight;
-import de.timmeey.iot.homeDashboard.health.weigth.WeightsAggregator;
-import de.timmeey.iot.homeDashboard.health.weigth.controller.dto.MetricWeightRequest;
+import de.timmeey.iot.homeDashboard.health.weigths.weight.MetricWeight;
+import de.timmeey.iot.homeDashboard.health.weigths.WeightsAggregator;
+import de.timmeey.iot.homeDashboard.health.weigths.controller.dto
+    .MetricWeightRequest;
+import de.timmeey.iot.homeDashboard.util.httptuils.EnhancedRequest;
 import de.timmeey.libTimmeey.printable.Printable;
 import de.timmeey.libTimmeey.printable.Printed;
 import java.time.ZonedDateTime;
@@ -50,9 +51,11 @@ public final class WeightController extends Controller {
     @POST("/")
     @Consumes(Consumes.JSON)
     @Produces(Produces.JSON)
-    public MetricWeight addWeights(@Body final MetricWeightRequest weightRequest) throws
+    public MetricWeight addWeights(@Body final MetricWeightRequest
+        weightRequest) throws
         Exception {
-        return this.weights.getAll().iterator().next().addWeight(ZonedDateTime.now(),weightRequest);
+        return this.weights.getAll().iterator().next().addWeight
+            (ZonedDateTime.now(), weightRequest);
     }
 
     private static final class BMIEnabledWeight implements MetricWeight {

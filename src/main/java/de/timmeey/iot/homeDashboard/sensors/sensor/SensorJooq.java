@@ -1,12 +1,12 @@
-package de.timmeey.iot.homeDashboard.sensors;
+package de.timmeey.iot.homeDashboard.sensors.sensor;
 
 import de.timmeey.iot.homeDashboard.sensors.readings.ReadingJooq;
-import de.timmeey.iot.homeDashboard.sensors.readings.ReadingRecord;
+import de.timmeey.iot.homeDashboard.sensors.readings.ReadingJooqConst;
 import static de.timmeey.iot.jooq.sqlite.Tables.SENSOR;
 import static de.timmeey.iot.jooq.sqlite.Tables.SENSOR_READING;
 import de.timmeey.iot.jooq.sqlite.tables.records.SensorReadingRecord;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
-import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
+import de.timmeey.libTimmeey.printable.Printed;
 import de.timmeey.libTimmeey.sensor.Sensor;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.sql.Timestamp;
@@ -31,7 +31,7 @@ import org.jooq.DSLContext;
 public final class SensorJooq implements Sensor {
     @Getter
     @Accessors(fluent = true)
-    private final UniqueIdentifier<String> id;
+    private final UUIDUniqueIdentifier id;
     private final DSLContext jooq;
 
     @SuppressWarnings("StringConcatenation")
@@ -51,7 +51,7 @@ public final class SensorJooq implements Sensor {
     @Override
     public final Reading addReading(final double value, final ZonedDateTime
         datetime) throws Exception {
-        UniqueIdentifier<String> readingId = new UUIDUniqueIdentifier();
+        UUIDUniqueIdentifier readingId = new UUIDUniqueIdentifier();
         jooq.insertInto(SENSOR_READING)
             .set(SENSOR_READING.ID, readingId.id())
             .set(SENSOR_READING.VALUE, value)
@@ -79,6 +79,11 @@ public final class SensorJooq implements Sensor {
             .id())).fetchOne().component1();
     }
 
+    @Override
+    public UUIDUniqueIdentifier id(){
+        return this.id;
+    }
+
     private long count() {
         return jooq.selectCount().from(SENSOR_READING)
             .where(SENSOR_READING.SENSOR_ID.eq(this.id.id()))
@@ -86,12 +91,18 @@ public final class SensorJooq implements Sensor {
     }
 
     private Reading mapToReading(SensorReadingRecord record) {
-        return new ReadingRecord(new ReadingJooq(
+        return new ReadingJooqConst(new ReadingJooq(
             new UUIDUniqueIdentifier(
                 record.component1()
             ),
             jooq),
             record
         );
+    }
+
+    @Override
+    public Printed print(final Printed printed) {
+        return printed.with("id",this.id().id())
+            .with("unit",this.unit());
     }
 }

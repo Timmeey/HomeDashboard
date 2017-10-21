@@ -30,7 +30,7 @@ hs_err_pid*
 *.iml
 out
 gen
-!/src/main/java/de/timmeey/iot/homeDashboard/health/weigth/Weights.java
+!/de/timmeey/iot/homeDashboard/health/weigths/Weights.java
 /dependency-reduced-pom.xml
 /src/main/resources/public/
 /dev.db

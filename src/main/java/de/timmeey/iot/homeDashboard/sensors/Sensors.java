@@ -13,9 +13,9 @@ import java.util.Optional;
  */
 public interface Sensors {
 
-    Iterable<? extends Sensors> sensors();
+    Iterable<Sensor> sensors();
     Sensor add(String unit) throws SQLException;
-    Optional<? extends Sensor> sensor(UniqueIdentifier<String> id);
+    Optional<Sensor> sensor(UniqueIdentifier<String> id);
 
 
 }

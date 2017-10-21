@@ -1,9 +1,12 @@
-package de.timmeey.iot.homeDashboard.sensors;
+package de.timmeey.iot.homeDashboard.sensors.sensor;
 
 import de.timmeey.iot.homeDashboard.sensors.readings.ReadingJooq;
-import de.timmeey.iot.homeDashboard.sensors.readings.ReadingRecord;
+import de.timmeey.iot.homeDashboard.sensors.readings.ReadingJooqConst;
 import static de.timmeey.iot.jooq.sqlite.Keys.FK_SENSOR_READING_SENSOR_1;
+import de.timmeey.iot.jooq.sqlite.tables.records.SensorRecord;
 import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
+import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
+import de.timmeey.libTimmeey.printable.Printed;
 import de.timmeey.libTimmeey.sensor.Sensor;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.time.ZonedDateTime;
@@ -19,17 +22,17 @@ import org.jooq.DSLContext;
  * @since 0.1
  */
 @RequiredArgsConstructor
-public class SensorRecord implements Sensor {
+public class SensorJooqConst implements Sensor {
 
     private final Sensor sot;
-    private final de.timmeey.iot.jooq.sqlite.tables.records.SensorRecord src;
+    private final SensorRecord src;
     private final DSLContext jooq;
 
     @Override
     public Iterable<Reading> readings() throws Exception {
         return new Mapped<>(
             src.fetchChildren(FK_SENSOR_READING_SENSOR_1), r ->
-            new ReadingRecord(
+            new ReadingJooqConst(
                 new ReadingJooq(
                     new UUIDUniqueIdentifier(r.getId()),
                     jooq),
@@ -56,5 +59,15 @@ public class SensorRecord implements Sensor {
     @Override
     public String unit() {
         return src.getUnit();
+    }
+
+    @Override
+    public UniqueIdentifier id() {
+        return new UUIDUniqueIdentifier(src.getId());
+    }
+
+    @Override
+    public Printed print(final Printed printed) {
+        return sot.print(printed);
     }
 }

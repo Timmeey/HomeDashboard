@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard.util;
+package de.timmeey.iot.homeDashboard.util.httptuils;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +18,7 @@ public class EnhancedRequest {
     public EnhancedRequest(final Request src) {
         this.src = src;
     }
+
     public Optional<Integer> getQueryParamAsInt(String name){
         val param = src.getQueryParameter(name);
         if (param.isMultiValued() || param.isEmpty() || param.isNull()){

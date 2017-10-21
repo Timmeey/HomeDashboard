@@ -1,6 +1,8 @@
 package de.timmeey.iot.homeDashboard.util;
 
+import com.fatboyindustrial.gsonjavatime.Converters;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import de.timmeey.libTimmeey.printable.JsonPrettyPrinted;
 import de.timmeey.libTimmeey.printable.Printed;
 import ro.pippo.core.Application;
@@ -14,7 +16,7 @@ import ro.pippo.core.HttpConstants;
  * @since 0.1
  */
 public class JsonPrintableEngine implements ContentTypeEngine {
-    Gson gson = new Gson();
+    Gson gson = Converters.registerZonedDateTime(new GsonBuilder()).create();
 
     @Override
     public void init(final Application application) {

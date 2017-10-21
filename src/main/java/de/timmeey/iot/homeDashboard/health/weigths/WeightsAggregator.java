@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths;
 
 import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import java.io.IOException;

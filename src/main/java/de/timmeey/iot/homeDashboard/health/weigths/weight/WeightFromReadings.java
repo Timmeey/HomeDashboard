@@ -1,4 +1,4 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths.weight;
 
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.time.ZonedDateTime;
@@ -13,11 +13,11 @@ import lombok.experimental.Accessors;
  */
 @Getter
 @Accessors(fluent = true)
-public class WeightFromReading implements MetricWeight {
+public class WeightFromReadings implements MetricWeight {
     private final ZonedDateTime datetime;
     private final double weight, bodyFat, bodyWater, boneMass, muscle;
 
-    public WeightFromReading(final Reading weight, final Reading fat,
+    public WeightFromReadings(final Reading weight, final Reading fat,
         final Reading water, final Reading boneMass, final Reading muscle) {
         this.datetime = weight.datetime();
         this.weight = weight.value();

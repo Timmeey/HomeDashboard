@@ -1,7 +1,8 @@
-package de.timmeey.iot.homeDashboard.health.weigth;
+package de.timmeey.iot.homeDashboard.health.weigths;
 
-import de.timmeey.iot.homeDashboard.health.weigth.controller.dto
+import de.timmeey.iot.homeDashboard.health.weigths.controller.dto
     .MetricWeightRequest;
+import de.timmeey.iot.homeDashboard.health.weigths.weight.MetricWeight;
 import java.time.ZonedDateTime;
 
 /**
