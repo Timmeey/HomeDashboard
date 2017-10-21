@@ -6,7 +6,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.kohsuke.MetaInfServices;
 import ro.pippo.controller.Consumes;
 import ro.pippo.controller.Controller;
 import ro.pippo.controller.GET;
@@ -22,13 +21,12 @@ import ro.pippo.controller.extractor.Param;
  * @version $Id:\$
  * @since 0.1
  */
-@MetaInfServices
 @Slf4j
 @Path("/lights")
 public class LightsController extends Controller {
 
     private final Map<Long, Light> lights;
-    
+
 
     public LightsController(@NonNull final Map<Long, Light> lights) {
         this.lights = lights;
